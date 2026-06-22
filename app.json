@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "GrocerLens",
-    "slug": "grocerlens",
+    "slug": "grocerlens-standalone",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -62,9 +62,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "beaaa263-257f-4ffb-b3b1-f131ea3b697d"
+        "projectId": "bc3f5af9-70b1-4dfb-a762-206af9f3665a"
       }
     },
-    "owner": "codegreens-team"
+    "owner": "codegreen"
   }
 }
