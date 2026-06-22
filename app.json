@@ -58,6 +58,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "16f230e0-387d-4fdf-9b9e-3b356045ba93"
+      }
+    },
+    "owner": "codegreens-team"
   }
 }
