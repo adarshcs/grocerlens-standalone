@@ -53,9 +53,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@babel/helper-define-polyfill-provider": "^1.0.0",
     "@types/react": "~19.1.10",
     "babel-plugin-react-compiler": "^19.0.0-beta-e993439-20250117",
-    "babel-preset-expo": "^56.0.15",
     "typescript": "~5.9.2"
   }
 }
