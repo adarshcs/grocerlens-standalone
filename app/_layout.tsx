@@ -19,13 +19,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ExpenseProvider } from "@/context/ExpenseContext";
 import { initializeRevenueCat, SubscriptionProvider } from "@/lib/revenuecat";
-import { Alert } from "react-native";
-
-try {
-  initializeRevenueCat();
-} catch (err: any) {
-  Alert.alert("RevenueCat Unavailable", err?.message ?? "Unknown error");
-}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -118,6 +111,14 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    try {
+      initializeRevenueCat();
+    } catch {
+      // RevenueCat unavailable — premium features disabled, app still works
+    }
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 

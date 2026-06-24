@@ -357,39 +357,27 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
                 ...(data.receiptEmail ? [[STORAGE_KEYS.EMAIL_ADDRESS, data.receiptEmail] as [string, string]] : []),
               ]);
 
-              // If first launch, seed sample bills with device-scoped IDs to avoid conflicts
+              // First launch — start clean, no sample data
               if (!isSeeded) {
-                const prefix = devId.slice(-8);
-                const seedBills = SAMPLE_BILLS.map((bill, bi) => ({
-                  ...bill,
-                  id: `${prefix}-s${bi + 1}`,
-                  items: bill.items.map((item, ii) => ({
-                    ...item,
-                    id: `${prefix}-s${bi + 1}-i${ii + 1}`,
-                  })),
-                }));
-                const seedMembers = SAMPLE_MEMBERS;
-
-                for (const bill of seedBills) {
-                  fetch(`${API_BASE}/api/households/${data.householdId}/bills`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ bill, deviceId: devId }),
-                  }).catch(() => {});
-                }
-
+                const initialMembers: FamilyMember[] = [
+                  { id: "me", name: "You", initials: "ME", color: "#15803d", isOwner: true },
+                ];
                 await AsyncStorage.multiSet([
-                  [STORAGE_KEYS.BILLS, JSON.stringify(seedBills)],
-                  [STORAGE_KEYS.MEMBERS, JSON.stringify(seedMembers)],
+                  [STORAGE_KEYS.BILLS, JSON.stringify([])],
+                  [STORAGE_KEYS.MEMBERS, JSON.stringify(initialMembers)],
                   [STORAGE_KEYS.SEEDED, "true"],
                 ]);
-                setBills(seedBills);
-                setFamilyMembers(seedMembers);
+                setBills([]);
+                setFamilyMembers(initialMembers);
               } else {
                 const cachedBills: Bill[] = billsRaw ? JSON.parse(billsRaw) : [];
                 const cachedMembers: FamilyMember[] = membersRaw ? JSON.parse(membersRaw) : [];
-                setBills(cachedBills.length ? cachedBills : SAMPLE_BILLS);
-                setFamilyMembers(cachedMembers.length ? cachedMembers : SAMPLE_MEMBERS);
+                setBills(cachedBills);
+                setFamilyMembers(
+                  cachedMembers.length
+                    ? cachedMembers
+                    : [{ id: "me", name: "You", initials: "ME", color: "#15803d", isOwner: true }]
+                );
               }
             } else {
               // Server unavailable — use local cache
@@ -400,8 +388,10 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch {
-        setBills(SAMPLE_BILLS);
-        setFamilyMembers(SAMPLE_MEMBERS);
+        setBills([]);
+        setFamilyMembers([
+          { id: "me", name: "You", initials: "ME", color: "#15803d", isOwner: true },
+        ]);
       } finally {
         setIsLoading(false);
       }
@@ -412,17 +402,20 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
       membersRaw: string | null,
       isSeeded: boolean
     ) {
+      const defaultMembers: FamilyMember[] = [
+        { id: "me", name: "You", initials: "ME", color: "#15803d", isOwner: true },
+      ];
       if (!isSeeded) {
-        setBills(SAMPLE_BILLS);
-        setFamilyMembers(SAMPLE_MEMBERS);
+        setBills([]);
+        setFamilyMembers(defaultMembers);
         AsyncStorage.multiSet([
-          [STORAGE_KEYS.BILLS, JSON.stringify(SAMPLE_BILLS)],
-          [STORAGE_KEYS.MEMBERS, JSON.stringify(SAMPLE_MEMBERS)],
+          [STORAGE_KEYS.BILLS, JSON.stringify([])],
+          [STORAGE_KEYS.MEMBERS, JSON.stringify(defaultMembers)],
           [STORAGE_KEYS.SEEDED, "true"],
         ]);
       } else {
-        setBills(billsRaw ? JSON.parse(billsRaw) : SAMPLE_BILLS);
-        setFamilyMembers(membersRaw ? JSON.parse(membersRaw) : SAMPLE_MEMBERS);
+        setBills(billsRaw ? JSON.parse(billsRaw) : []);
+        setFamilyMembers(membersRaw ? JSON.parse(membersRaw) : defaultMembers);
       }
     }
 
