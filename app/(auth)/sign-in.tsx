@@ -50,10 +50,18 @@ export default function SignInScreen() {
         // Native (iOS/Android): OAuth popup via Expo
         const { createdSessionId, setActive } = await startSSOFlow({
           strategy,
-          redirectUrl: AuthSession.makeRedirectUri(),
+          redirectUrl: AuthSession.makeRedirectUri({
+            scheme: "grocerlens",
+            path: "sso-callback",
+          }),
         });
         if (createdSessionId) {
           await setActive!({ session: createdSessionId });
+        } else {
+          Alert.alert(
+            "Sign in failed",
+            "Authentication did not complete. Make sure your connection is stable and try again."
+          );
         }
       } catch (err) {
         Alert.alert("Sign in failed", "Please try again.");
