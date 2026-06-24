@@ -1,10 +1,8 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
 import Purchases from "react-native-purchases";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import Constants from "expo-constants";
 
-const REVENUECAT_TEST_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY;
 const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
 const REVENUECAT_ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
 
@@ -14,28 +12,27 @@ function getRevenueCatApiKey() {
   if (Platform.OS === "ios") {
     return REVENUECAT_IOS_API_KEY!;
   }
-
   return REVENUECAT_ANDROID_API_KEY!;
 }
 
-export function initializeRevenueCat() {
+function configureRevenueCat() {
   const apiKey = getRevenueCatApiKey();
   if (!apiKey) throw new Error("RevenueCat Public API Key not found");
-
   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
   Purchases.configure({ apiKey });
-
   console.log("Configured RevenueCat");
 }
 
-function useSubscriptionContext() {
+function useSubscriptionContext(isReady: boolean) {
   const customerInfoQuery = useQuery({
     queryKey: ["revenuecat", "customer-info"],
     queryFn: async () => {
       const info = await Purchases.getCustomerInfo();
       return info;
     },
+    enabled: isReady,
     staleTime: 60 * 1000,
+    throwOnError: false,
   });
 
   const offeringsQuery = useQuery({
@@ -44,7 +41,9 @@ function useSubscriptionContext() {
       const offerings = await Purchases.getOfferings();
       return offerings;
     },
+    enabled: isReady,
     staleTime: 300 * 1000,
+    throwOnError: false,
   });
 
   const purchaseMutation = useMutation({
@@ -81,7 +80,18 @@ type SubscriptionContextValue = ReturnType<typeof useSubscriptionContext>;
 const Context = createContext<SubscriptionContextValue | null>(null);
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
-  const value = useSubscriptionContext();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      configureRevenueCat();
+      setIsReady(true);
+    } catch (e) {
+      console.warn("[RevenueCat] Failed to configure — premium features disabled:", e);
+    }
+  }, []);
+
+  const value = useSubscriptionContext(isReady);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
